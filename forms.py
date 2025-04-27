@@ -192,7 +192,15 @@ class AdminUserForm(FlaskForm):
     submit = SubmitField('Save User')
 
 class TestimonialForm(FlaskForm):
-    course_id = SelectField('Course', coerce=int, validators=[DataRequired()])
+    testimonial_type = SelectField('Testimonial Type', choices=[
+        ('course', 'Course Testimonial'),
+        ('instructor', 'Instructor Testimonial'),
+        ('admin', 'Admin Testimonial')
+    ], validators=[DataRequired()])
+    
+    course_id = SelectField('Course', coerce=int, validators=[Optional()])
+    target_id = SelectField('Person', coerce=int, validators=[Optional()])
+    
     content = TextAreaField('Your Testimonial', validators=[DataRequired(), Length(min=20, max=500)])
     rating = RadioField('Rating', choices=[
         (1, '1 Star'), 
@@ -202,6 +210,20 @@ class TestimonialForm(FlaskForm):
         (5, '5 Stars')
     ], coerce=int, validators=[DataRequired()])
     submit = SubmitField('Submit Testimonial')
+    
+    def validate(self, **kwargs):
+        if not super(TestimonialForm, self).validate(**kwargs):
+            return False
+            
+        # Validate that either course_id or target_id is provided based on testimonial_type
+        if self.testimonial_type.data == 'course' and not self.course_id.data:
+            self.course_id.errors.append('Please select a course for your testimonial.')
+            return False
+        elif self.testimonial_type.data in ['instructor', 'admin'] and not self.target_id.data:
+            self.target_id.errors.append('Please select a person for your testimonial.')
+            return False
+            
+        return True
 
 class CertificateForm(FlaskForm):
     """Form for issuing certificates to students"""

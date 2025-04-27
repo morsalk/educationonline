@@ -399,8 +399,15 @@ class Testimonial(db.Model):
     is_approved = db.Column(db.Boolean, default=False)  # Admin must approve testimonials
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship
-    user = db.relationship('User', backref='testimonials')
+    # New fields for multiple testimonials
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True)
+    testimonial_type = db.Column(db.String(20), nullable=False, default='course')  # course, admin, instructor
+    target_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # For admin/instructor testimonials
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='testimonials')
+    course = db.relationship('Course', backref='testimonials')
+    target = db.relationship('User', foreign_keys=[target_id], backref='received_testimonials')
     
     def __repr__(self):
         return f'<Testimonial {self.id} by {self.user.username}>'
